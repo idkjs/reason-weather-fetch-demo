@@ -132,3 +132,119 @@ let parseWeatherJson = json : weather =>
 In this snippet, `field` and `string` are properties of `Json.Decode`. This new syntax "opens" `Json.Decode`, so its properties can be used freely within the curly brackets (instead of repeating `Json.Decode` on every field). The code generates a weather item, using the `text` and `temp` fields to assign `summary` and `temp` values.
 
 `float_of_string` does exactly what you'd expect: it converts the temperature from a `string` (as we get from the API) into a `float`.
+
+## Updating State with the [`option variant`](https://reasonml.github.io/docs/en/variant.html#option)
+
+Now we've got a `getWeather()` method which returns a promise, we need to call this when our `App` component loads. ReasonReact has a similar set of lifecycle methods to React.js, with a few small differences. We'll be using the `didMount` lifecycle method for making the API call to fetch the weather.
+
+First of all, we need to change our `state` to show that it's possible to **not** have a weather item in `state` - we'll get rid of the dummy data. `option()` is a built-in `variant` in Reason, which describes a `"nullable"` value:
+
+[`type option('a) = None | Some('a);`](https://reasonml.github.io/docs/en/variant.html#option)
+
+We need to specify `None` in our `state` type and `initial` state, and `Some`(weather) in our `WeatherLoaded` reducer:
+
+I've had a hard time retaining how and when to call `None` and `Some` and its the very reason I am writing this post. So I can have a reference and to maybe save someone else some pain.
+
+### `state` using `option`
+
+So, changing our `state` to the built in `option` variant we start with this:
+
+```js
+type state = { weather: WeatherData.weather };
+```
+
+and end with this:
+
+```js
+type state = {
+  weather: option(WeatherData.weather)
+};
+```
+
+By putting `option` before passing in the `WeatherData.weather` type we are telling he compilier that this may or may not return a value. We are saying that this value may be `null` or that its `nullable`. Reason/oCaml doesn't do `null`, the concept doesn't exist because a non-existent value wont type check and Reason is type-safe. That's the point. So the `option` variant lets us do type-safe null values.
+
+### `initialState` using `option`
+
+We start with this:
+
+```js
+  initialState: () => {weather: dummyWeather},
+```
+
+and get to this:
+
+```js
+  initialState: () => {
+    weather: None
+},
+```
+
+Both before and after look basically the same. `initialState` gets `WeatherData` type. In the before version, you can explicity see your `dummyWeather` variable that we had defined. After, that's gone. We now tell `initialState` that it will be set to the `None` option on the `WeatherData` type, whatever that is. So we don't see the explicity defined `record` anymore and that is just the way its supposed to be. We haven't recieved any data back when we just start the app, so `initialState` which is typed as `WeatherData` will have no value. So, we are telling the compiler that `initialState` is of type `WeatherData` but it that it has no value when we start the app.
+
+### `reducer` using `option`
+
+Before:
+
+```js
+  reducer: (action, _prevState) =>
+    switch (action) {
+    | WeatherLoaded(newWeather) => ReasonReact.Update({weather: newWeather})
+    },
+```
+
+After:
+
+```js
+reducer: (action, _prevState) => {
+    switch action {
+    | WeatherLoaded(newWeather) =>
+      ReasonReact.Update({
+        weather: Some(newWeather)
+      })
+    }
+},
+```
+
+In before version of our reducer, we passed a new weather record that we get back from the api, here called `newWeather`, to our `reducer` and tell it to update the app.
+
+In the after version, using `option`, we tell it to expect some data, `newWeather` and that is this is the non-null option on our `state` type. So we are passing in data of type `WeatherData` expected by our state `type` and that it should actually have a value.
+
+If the horse is not dead yet, let me know, and I will come back and beat it some more.
+
+Now we can actually make the API request when our component mounts but we need to tell the our `component` how to do that. Looking at the code below, `handleWeatherLoaded` is a method which dispatches our `WeatherLoaded` `action` we defined at the top of this file, to the `reducer`. When the promise resolves, it will be handled by our `reducer`, and the `state` will be updated! So when `WeatherLoaded` gets the data is expecting, the `promise` resolves by sending the data to the `reducer`. The `|>ignore` call tell the compiler to ignore the result of this promise. This is because of the way ocaml is set up. We already handled the response when we called `handleWeatherLoaded`.
+
+```js
+initialState: () =>...
+didMount: (self) => {
+    let handleWeatherLoaded = weather => self.send(WeatherLoaded(weather));
+
+    WeatherData.getWeather()
+      |> Js.Promise.then_(
+        weather => {
+          handleWeatherLoaded(weather);
+          Js.Promise.resolve();
+        }
+      )
+      |> ignore;
+},
+```
+
+If we run our app now, the app won't compile. We run into an error... We're currently trying to render information about self.state.weather, but this is set to None until we receive a response from the API. Let's update our App component to show a loading message while we wait:
+
+```js
+  render: self =>
+    <div className="App">
+      <p>
+        (
+          switch (self.state.weather) {
+          | None => ReasonReact.string("Loading weather...")
+          | Some(weather) => ReasonReact.string(weather.summary)
+          }
+        )
+      </p>
+    </div>,
+```
+
+If you run the app now, it will compile and you get this in the browser:
+
+![itsalive](./itsalive.gif)
