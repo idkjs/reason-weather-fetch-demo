@@ -101,3 +101,34 @@ Then add them to your `bsconfig.json` file like this:
     "bs-fetch"
   ],
 ```
+
+We'll be using the [Yahoo Weather API](https://developer.yahoo.com/weather/) to fetch our data from our `WeatherData` module, `WeatherData.re`. Our `getWeather()` method will call the API, then parse the result using `parseWeatherResultsJson()`, before resolving with a weather item:
+
+## Parsing the Json Response
+
+First:
+
+```js
+let parseWeatherResultsJson = json =>
+  Json.parseOrRaise(json)
+  |> Json.Decode.(
+       at(
+         ["query", "results", "channel", "item", "condition"],
+         parseWeatherJson,
+       )
+     );
+```
+
+This parses the JSON string response, before traversing the data via the specified fields. It then uses the parseWeatherJson() method to parse the data found inside the condition field with this function which we call in `parseWeatherResultsJson`:
+
+```js
+let parseWeatherJson = json : weather =>
+  Json.Decode.{
+    summary: field("text", string, json),
+    temp: float_of_string(field("temp", string, json)),
+  };
+```
+
+In this snippet, `field` and `string` are properties of `Json.Decode`. This new syntax "opens" `Json.Decode`, so its properties can be used freely within the curly brackets (instead of repeating `Json.Decode` on every field). The code generates a weather item, using the `text` and `temp` fields to assign `summary` and `temp` values.
+
+`float_of_string` does exactly what you'd expect: it converts the temperature from a `string` (as we get from the API) into a `float`.
