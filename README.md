@@ -86,3 +86,18 @@ let getPoints = r =>
 This is what it looks like in VSCode.
 
 ![matching](./matching.gif)
+
+## Fetching Data from an API
+
+Add `@glennsl/bs-json` and `bs-fetch`.
+
+Then add them to your `bsconfig.json` file like this:
+
+```json
+  "bs-dependencies": [
+    "reason-react",
+    "@glennsl/bs-jest",
+    "@glennsl/bs-json",
+    "bs-fetch"
+  ],
+```
