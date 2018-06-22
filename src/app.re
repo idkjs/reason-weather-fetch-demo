@@ -5,7 +5,7 @@
 type state = {weather: option(WeatherData.weather)};
 
 type action =
-  | WeatherLoaded(WeatherData.weather);
+  | LoadedWeather(WeatherData.weather);
 
 let component = ReasonReact.reducerComponent("App");
 
@@ -13,7 +13,7 @@ let make = _children => {
   ...component,
   initialState: () => {weather: None},
   didMount: self => {
-    let handleWeatherLoaded = weather => self.send(WeatherLoaded(weather));
+    let handleWeatherLoaded = weather => self.send(LoadedWeather(weather));
 
     WeatherData.getWeather()
     |> Js.Promise.then_(weather => {
@@ -24,7 +24,7 @@ let make = _children => {
   },
   reducer: (action, _prevState) =>
     switch (action) {
-    | WeatherLoaded(newWeather) =>
+    | LoadedWeather(newWeather) =>
       ReasonReact.Update({weather: Some(newWeather)})
     },
   render: self =>

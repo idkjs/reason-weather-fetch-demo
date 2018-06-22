@@ -23,8 +23,8 @@ let parseWeatherResultsJson = json =>
 
 let getWeather = () =>
   Js.Promise.(
-    Bs_fetch.fetch(url)
-    |> then_(Bs_fetch.Response.text)
+    Fetch.fetch(url)
+    |> then_(Fetch.Response.text)
     |> then_(jsonText => {
          let result = parseWeatherResultsJson(jsonText);
          resolve(result);

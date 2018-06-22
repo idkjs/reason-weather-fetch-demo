@@ -17,20 +17,20 @@ Make App.re stateful which requires variants for state and actions.
 
 Create a `state` type which references our `WeatherData` type so when we call `state` it will compile if the weather record is of type `WeatherData`. Note that the `state` type is a `record` which we can tell by the record `{}` syntax. Example: `type state = {weather: WeatherData.weather};`
 
-Create an action type, give it a name and, in this case tell it to expect a record of type WeatherData. So Whenever we call WeatherLoaded we have to be sure to pass it a record of type WeatherData.weather. This is not referrign to our state type. When we go to update state, it will check if what we pass it is of the WeatherData type. Here we are not doing that. Just passing the action a type of WeatherData to do something else with. The thing we will be doing, is updating the state.
+Create an action type, give it a name and, in this case tell it to expect a record of type WeatherData. So Whenever we call LoadedWeather we have to be sure to pass it a record of type WeatherData.weather. This is not referrign to our state type. When we go to update state, it will check if what we pass it is of the WeatherData type. Here we are not doing that. Just passing the action a type of WeatherData to do something else with. The thing we will be doing, is updating the state.
 
 The `action` type is a `Variant`: a data structure which represents a choice of different values (like enums). Each case in a `Variant` must be capitalised,and can optionally receive parameters.
 
 ```js
 type action =
-  | WeatherLoaded(WeatherData.weather);
+  | LoadedWeather(WeatherData.weather);
 ```
 
 Later we can use the defined `Variants` in a `switch` expression which lets us handle the different options. The options in this case being the built in `Some` and `None` options.
 
 ```js
     switch (action) {
-    | WeatherLoaded(newWeather) => ReasonReact.Update({weather: newWeather})
+    | LoadedWeather(newWeather) => ReasonReact.Update({weather: newWeather})
     },
 ```
 
@@ -52,7 +52,7 @@ let make = _children => {
   initialState: () => {weather: dummyweather},
   reducer: (action, _prevState) =>
     switch (action) {
-    | WeatherLoaded(newWeather) => ReasonReact.Update({weather: newWeather})
+    | LoadedWeather(newWeather) => ReasonReact.Update({weather: newWeather})
     },
   render: self =>
     <div className="App">
@@ -141,7 +141,7 @@ First of all, we need to change our `state` to show that it's possible to **not*
 
 [`type option('a) = None | Some('a);`](https://reasonml.github.io/docs/en/variant.html#option)
 
-We need to specify `None` in our `state` type and `initial` state, and `Some`(weather) in our `WeatherLoaded` reducer:
+We need to specify `None` in our `state` type and `initial` state, and `Some`(weather) in our `LoadedWeather` reducer:
 
 I've had a hard time retaining how and when to call `None` and `Some` and its the very reason I am writing this post. So I can have a reference and to maybe save someone else some pain.
 
@@ -188,7 +188,7 @@ Before:
 ```js
   reducer: (action, _prevState) =>
     switch (action) {
-    | WeatherLoaded(newWeather) => ReasonReact.Update({weather: newWeather})
+    | LoadedWeather(newWeather) => ReasonReact.Update({weather: newWeather})
     },
 ```
 
@@ -197,7 +197,7 @@ After:
 ```js
 reducer: (action, _prevState) => {
     switch action {
-    | WeatherLoaded(newWeather) =>
+    | LoadedWeather(newWeather) =>
       ReasonReact.Update({
         weather: Some(newWeather)
       })
@@ -211,17 +211,17 @@ In the after version, using `option`, we tell it to expect some data, `newWeathe
 
 If the horse is not dead yet, let me know, and I will come back and beat it some more.
 
-Now we can actually make the API request when our component mounts but we need to tell the our `component` how to do that. Looking at the code below, `handleWeatherLoaded` is a method which dispatches our `WeatherLoaded` `action` we defined at the top of this file, to the `reducer`. When the promise resolves, it will be handled by our `reducer`, and the `state` will be updated! So when `WeatherLoaded` gets the data is expecting, the `promise` resolves by sending the data to the `reducer`. The `|>ignore` call tell the compiler to ignore the result of this promise. This is because of the way ocaml is set up. We already handled the response when we called `handleWeatherLoaded`.
+Now we can actually make the API request when our component mounts but we need to tell the our `component` how to do that. Looking at the code below, `handleLoadedWeather` is a method which dispatches our `LoadedWeather` `action` we defined at the top of this file, to the `reducer`. When the promise resolves, it will be handled by our `reducer`, and the `state` will be updated! So when `LoadedWeather` gets the data is expecting, the `promise` resolves by sending the data to the `reducer`. The `|>ignore` call tell the compiler to ignore the result of this promise. This is because of the way ocaml is set up. We already handled the response when we called `handleLoadedWeather`.
 
 ```js
 initialState: () =>...
 didMount: (self) => {
-    let handleWeatherLoaded = weather => self.send(WeatherLoaded(weather));
+    let handleLoadedWeather = weather => self.send(LoadedWeather(weather));
 
     WeatherData.getWeather()
       |> Js.Promise.then_(
         weather => {
-          handleWeatherLoaded(weather);
+          handleLoadedWeather(weather);
           Js.Promise.resolve();
         }
       )
@@ -248,3 +248,43 @@ If we run our app now, the app won't compile. We run into an error... We're curr
 If you run the app now, it will compile and you get this in the browser:
 
 ![itsalive](./itsalive.gif)
+
+## Error handling with a `switch`
+
+> One thing we haven't thought about is what happens if we can't load our data. What if the API is down, or it returns something we're not expecting? We'll need to recognise this and reject the promise:
+
+```js
+let getWeather = () =>
+  Js.Promise.(
+    Fetch.fetch(url)
+    |> then_(Fetch.Response.text)
+    |> then_(jsonText =>
+         switch (parseWeatherResultsJson(jsonText)) {
+         | exception e => reject(e)
+         | weather => resolve(weather)
+         }
+       )
+  );
+```
+
+> This switch statement tries to parse the API response. If an exception is raised, it will reject the promise with that error. If the parsing was successful, the promise will be resolved with the weather item.
+
+```js
+switch (parseWeatherResultsJson(jsonText)) {
+ | exception e => reject(e);
+ | weather => resolve(weather);
+};
+```
+
+> Next, we'll change our state to let us recognise if an error has occurred. Let's create a new type which adds an Error case to our previous `Some('a)` or `None`.
+
+```js
+type optionOrError('a) =
+  | Some('a)
+  | None
+  | Error;
+
+type state = {
+  weather: optionOrError(WeatherData.weather)
+};
+```
