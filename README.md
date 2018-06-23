@@ -276,9 +276,13 @@ switch (parseWeatherResultsJson(jsonText)) {
 };
 ```
 
-> Next, we'll change our state to let us recognise if an error has occurred. Let's create a new type which adds an Error case to our previous `Some('a)` or `None`.
+Next, we'll change our state to let us recognise if an error has occurred. Let's create a new type which adds an Error case to our previous `Some('a)` or `None` which means the horse is not dead and must be beat. Where did that `Some('a)` or `None` come from? Its from the built in `option` type. Again,
 
-```js
+[`type option('a) = None | Some('a);`](https://reasonml.github.io/docs/en/variant.html#option)
+
+`('a)` is the type signature for any type. It's the type we are passing when we use `option`.
+
+```r
 type optionOrError('a) =
   | Some('a)
   | None
@@ -287,4 +291,95 @@ type optionOrError('a) =
 type state = {
   weather: optionOrError(WeatherData.weather)
 };
+
+type action =
+  | WeatherLoaded(WeatherData.weather)
+  | WeatherError;
 ```
+
+After setting this up, we'll also need to add a function to `Error` case to our render function,
+`let handleWeatherError = () => self.send(WeatherError);`
+Finally, we need to create a new `action` and `reducer` to be used when our `getWeather()` promise rejects.
+
+```js
+|> Js.Promise.catch(_err => {
+         handleWeatherError();
+         Js.Promise.resolve();
+       })
+```
+
+This is what the `make` function looks like after we do the above. Just for fun, i've used some destructuring to pull out the `summary` and `temp` values from the data passed into our `switch` statement. Note that we had to use `string_of_float` to get the `temp` value, which is of type `float` to convert to a `string` so that ReasonReact could render it to the browswer.
+
+```js
+let make = _children => {
+  ...component,
+  initialState: () => {weather: None},
+  didMount: self => {
+    let handleLoadedWeather = weather => self.send(LoadedWeather(weather));
+    let handleWeatherError = () => self.send(WeatherError);
+
+    WeatherData.getWeather()
+    |> Js.Promise.then_(weather => {
+         handleLoadedWeather(weather);
+         Js.Promise.resolve();
+       })
+    |> Js.Promise.catch(_err => {
+         handleWeatherError();
+         Js.Promise.resolve();
+       })
+    |> ignore;
+  },
+  reducer: (action, _prevState) =>
+    switch (action) {
+    | LoadedWeather(newWeather) =>
+      ReasonReact.Update({weather: Some(newWeather)})
+    | WeatherError => ReasonReact.Update({weather: Error})
+    },
+  render: self =>
+    <div className="App">
+      <p>
+        (
+          switch (self.state.weather) {
+          | None => ReasonReact.string("Loading weather...")
+          | Error => ReasonReact.string("Error loading weather.")
+          | Some({summary, temp}) =>
+            ReasonReact.string(summary ++ " - " ++ string_of_float(temp))
+          }
+        )
+      </p>
+    </div>,
+};
+```
+
+To test our error message, I have passed used this query which looks the city `newyork` in `france` which obviously will not work.
+`let url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22newyork%2C%20france%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";`
+
+![errorhandling](./errorhandling.gif)
+
+These are concepts we've used already, but it's useful to let the user know if something goes wrong. We don't want to leave them hanging with a "loading" message!
+
+There we have it, our first ReasonReact web app. Nice work! We've covered a lot of new concepts, but hopefully you can already see some of the benefits of using Reason.
+
+If you found this interesting & would like to see another post building upon this, please let me know by clicking a reaction below! ❤️ 🦄 🔖
+
+## Further Reading
+
+A little more context, including a link to the source code.
+
+Exploring ReasonML and functional programming - a free online book about (you guessed it) Reason and FP.
+OSS projects
+
+    bs-jest - BuckleScript bindings for Jest.
+    lwt-node - a Reason implementation of the Node.js API
+    reason-apollo - bindings for Apollo client and React Apollo
+
+Other
+
+    Discord channel
+    Forum
+    Reason Town - a podcast on the ReasonML language and community
+    Redex - the Reason package index
+
+## Thank You
+
+Post structure and content substantially inspired by [@jlewin](https://twitter.com/jlewin_)'s [Getting Started](https://dev.to/jlewin_/reasonml-getting-started-53gi) tutorial.
