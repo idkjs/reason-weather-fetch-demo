@@ -204,14 +204,14 @@ If you found this interesting & would like to see another post building upon thi
 
 ## Further Reading
 
-The [source code]().
+The [source code](https://github.com/idkjs/reason-weather-fetch-demo).
 
 [Exploring ReasonML and functional programming](http://reasonmlhub.com/exploring-reasonml/) - a free online book about (you guessed it) Reason and FP.
 
 ## Related OSS projects to checkout:
 
-[bs-jest](https://github.com/glennsl/bs-jest) - BuckleScript bindings for Jest.
-[lwt-node](https://github.com/kennetpostigo/lwt-node) - a Reason implementation of the Node.js API
+[bs-jest](https://github.com/glennsl/bs-jest) - BuckleScript bindings for Jest.  
+[lwt-node](https://github.com/kennetpostigo/lwt-node) - a Reason implementation of the Node.js API  
 [reason-apollo](https://github.com/apollographql/reason-apollo) - bindings for Apollo client and React Apollo
 
 ## Other related good links:
