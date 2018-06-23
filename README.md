@@ -187,7 +187,7 @@ This is what the `make` function looks like after we do the above. Just for fun,
 To test our error message, I have passed used this query which looks the city `newyork` in `france` which obviously will not work.
 
 <div align="center">
-    <img src="./assets/badurl.svg" alt="weather-code-snippet">
+    <img src="./assets/badurl.png" alt="weather-code-snippet">
 </div>  
 <br>
 And in the browser, working error handling!  
