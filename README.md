@@ -1,4 +1,5 @@
 #Reason Weather Fetching
+![reason-header](./reason-header.png)
 
 ## Data Types
 
@@ -364,21 +365,22 @@ If you found this interesting & would like to see another post building upon thi
 
 ## Further Reading
 
-A little more context, including a link to the source code.
+The [source code]().
 
-Exploring ReasonML and functional programming - a free online book about (you guessed it) Reason and FP.
+[Exploring ReasonML and functional programming](http://reasonmlhub.com/exploring-reasonml/) - a free online book about (you guessed it) Reason and FP.
+
 OSS projects
 
-    bs-jest - BuckleScript bindings for Jest.
-    lwt-node - a Reason implementation of the Node.js API
-    reason-apollo - bindings for Apollo client and React Apollo
+    [bs-jest](https://github.com/glennsl/bs-jest) - BuckleScript bindings for Jest.
+    [lwt-node](https://github.com/kennetpostigo/lwt-node) - a Reason implementation of the Node.js API
+    [reason-apollo](https://github.com/apollographql/reason-apollo) - bindings for Apollo client and React Apollo
 
 Other
 
-    Discord channel
-    Forum
-    Reason Town - a podcast on the ReasonML language and community
-    Redex - the Reason package index
+    [Discord channel](https://discordapp.com/invite/reasonml)
+    [Forum](https://reasonml.chat/)
+    [Reason Town](https://reason.town/) - a podcast on the ReasonML language and community
+    [Redex](https://redex.github.io/) - the Reason package index
 
 ## Thank You
 
