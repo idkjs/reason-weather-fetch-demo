@@ -123,7 +123,7 @@ By putting `option` before passing in the `WeatherData.weather` type we are tell
 
 We start with this:
 
-![initialstate](./assets/initialstate.png)
+![initialState](./assets/initialState.png)
 
 and get to this:
 ![initialstateafter](./assets/initialstateafter.png)
