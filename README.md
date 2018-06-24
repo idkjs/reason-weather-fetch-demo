@@ -63,15 +63,21 @@ The `action` type is a `Variant`: a data structure which represents a choice of 
 
 Create a scratch file, here `MatchingDemo.re`. Create an `action` type with three options.
 
-![excursion-result](./assets/excursion-result.png)
+<div align="center">
+    <img src="./assets/excursion-result.png" alt="excursion-result-code-snippet">
+</div>
 
 Create a function that takes our `result` type and switches based on the `action`. The compiler is inferring that `r` is of the type defined in this file. Given that it's inferring the `result` type, it realizes that one of the options is misssing and tells us by underlying the offending function with squiggly green lines. If you hover over them you get a nice message.
 
-![excursion-function](./assets/excursion-function.png)
+<div align="center">
+    <img src="./assets/excursion-function.png" alt="excursion-function-code-snippet">
+</div>
 
 This is what it looks like in VSCode.
 
-![matching](./assets/matching.gif)
+<div align="center">
+    <img src="./assets/matching.gif" alt="editor-error-screenshot">
+</div>
 
 ## Fetching Data from an API
 
@@ -79,7 +85,9 @@ Add `@glennsl/bs-json` and `bs-fetch`.
 
 Then add them to your `bsconfig.json` file like this:
 
-![bsdeps](./assets/bsdeps.png)
+<div align="center">
+    <img src="./assets/bsdeps.png" alt="bsdeps-code-snippet">
+</div>
 
 We'll be using the [Yahoo Weather API](https://developer.yahoo.com/weather/) to fetch our data from our `WeatherData` module, `WeatherData.re`. Our `getWeather()` method will call the API, then parse the result using `parseWeatherResultsJson()`, before resolving with a weather item:
 
@@ -102,7 +110,9 @@ Now we've got a `getWeather()` method which returns a promise, we need to call t
 
 First of all, we need to change our `state` to show that it's possible to **not** have a weather item in `state` - we'll get rid of the dummy data. `option()` is a built-in `variant` in Reason, which describes a `"nullable"` value:
 
-[![nonesome](./assets/nonesome.png)](https://reasonml.github.io/docs/en/variant.html#option)
+<div align="center">
+    <img src="./assets/nonesome.png" alt="nonesome-code-snippet">
+</div>
 
 We need to specify `None` in our `state` type and `initial` state, and `Some`(weather) in our `LoadedWeather` reducer:
 
@@ -111,11 +121,16 @@ I've had a hard time retaining how and when to call `None` and `Some` and its th
 ### `state` using `option`
 
 So, changing our `state` to the built in `option` variant we start with this:
-![state](./assets/state.png)
+
+<div align="center">
+    <img src="./assets/state.png" alt="state-code-snippet">
+</div>
 
 and end with this:
 
-![stateafter](./assets/stateafter.png)
+<div align="center">
+    <img src="./assets/stateafter.png" alt="stateafter-code-snippet">
+</div>
 
 By putting `option` before passing in the `WeatherData.weather` type we are telling he compilier that this may or may not return a value. We are saying that this value may be `null` or that its `nullable`. Reason/oCaml doesn't do `null`, the concept doesn't exist because a non-existent value wont type check and Reason is type-safe. That's the point. So the `option` variant lets us do type-safe null values.
 
@@ -123,24 +138,35 @@ By putting `option` before passing in the `WeatherData.weather` type we are tell
 
 We start with this:
 
-![initialState](./assets/initialState.png)
+<div align="center">
+    <img src="./assets/initialState.png" alt="initialState-code-snippet">
+</div>
 
 and get to this:
-![initialstateafter](./assets/initialstateafter.png)
+
+<div align="center">
+    <img src="./assets/initialstateafter.png" alt="initialstateafter-code-snippet">
+</div>
 
 Both before and after look basically the same. `initialState` gets `WeatherData` type. In the before version, you can explicity see your `dummyWeather` variable that we had defined. After, that's gone. We now tell `initialState` that it will be set to the `None` option on the `WeatherData` type, whatever that is. So we don't see the explicity defined `record` anymore and that is just the way its supposed to be. We haven't recieved any data back when we just start the app, so `initialState` which is typed as `WeatherData` will have no value. So, we are telling the compiler that `initialState` is of type `WeatherData` but it that it has no value when we start the app.
 
 ### `reducer` using `option`
 
 Before:
-![reducerbefore](./assets/reducerbefore.png)
 
+<div align="center">
+    <img src="./assets/reducerbefore.png" alt="reducerbefore-code-snippet">
+</div>
+<br/>
 After:
-![reducerafter](./assets/reducerafter.png)
 
-In before version of our reducer, we passed a new weather record that we get back from the api, here called `newWeather`, to our `reducer` and tell it to update the app.
+<div align="center">
+    <img src="./assets/reducerafter.png" alt="reducerafter-code-snippet">
+</div>
 
-In the after version, using `option`, we tell it to expect some data, `newWeather` and that is this is the non-null option on our `state` type. So we are passing in data of type `WeatherData` expected by our state `type` and that it should actually have a value.
+In before version of our `reducer`, we passed a new weather `record` that we get back from the api, here called `newWeather`, to our `reducer` and tell it to update the app.
+
+In the after version, using `option`, we tell it to expect some data, `newWeather` and that is this is the non-null `option` on our `state` type. So we are passing in data of type `WeatherData` expected by our state `type` and that it should actually have a value.
 
 If the horse is not dead yet, let me know, and I will come back and beat it some more.
 
@@ -154,7 +180,9 @@ If we run our app now, the app won't compile. We run into an error... We're curr
 
 If you run the app now, it will compile and you get this in the browser:
 
-![itsalive](./assets/itsalive.gif)
+<div align="center">
+    <img src="./assets/itsalive.gif" alt="itsalive-screenshot">
+</div>
 
 ## Error handling with a `switch`
 
@@ -168,17 +196,22 @@ If you run the app now, it will compile and you get this in the browser:
 
 Next, we'll change our state to let us recognise if an error has occurred. Let's create a new type which adds an Error case to our previous `Some('a)` or `None` which means the horse is not dead and must be beat. Where did that `Some('a)` or `None` come from? Its from the built in `option` type. Again,
 
-[![somenone](./assets/somenone.png)
-](https://reasonml.github.io/docs/en/variant.html#option)
+<div align="center">
+    <img src="./assets/nonesome.png" alt="nonesome-option-variant-snippet">
+    <caption><a href="https://reasonml.github.io/docs/en/variant.html#option)"/>https://reasonml.github.io/docs/en/variant.html#option</caption>
+</div>
+<br/>
 
-`('a)` is the type signature for any type. It's the type we are passing when we use `option`.
+`('a)` is the type signature for any type. It's the type we are passing when we use `option`. So when we are using the `optionOrError` type, we are telling the compiler to look for `Some` option of type `('a)`
 ![options](./assets/options.png)
 
 After setting this up, we'll also need to add a function to `Error` case to our render function,
 `let handleWeatherError = () => self.send(WeatherError);`
 Finally, we need to create a new `action` and `reducer` to be used when our `getWeather()` promise rejects.
 
-![catchErr](./assets/catchErr.png)
+<div align="center">
+    <img src="./assets/catchErr.png" alt="catchErr-code">
+</div>
 
 This is what the `make` function looks like after we do the above. Just for fun, i've used some destructuring to pull out the `summary` and `temp` values from the data passed into our `switch` statement. Note that we had to use `string_of_float` to get the `temp` value, which is of type `float` to convert to a `string` so that ReasonReact could render it to the browswer.
 
