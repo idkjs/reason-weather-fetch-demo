@@ -198,11 +198,12 @@ Next, we'll change our state to let us recognise if an error has occurred. Let's
 
 <div align="center">
     <img src="./assets/nonesome.png" alt="nonesome-option-variant-snippet">
-    <caption><a href="https://reasonml.github.io/docs/en/variant.html#option)"/>https://reasonml.github.io/docs/en/variant.html#option</caption>
+    <caption><a href="https://reasonml.github.io/docs/en/variant.html#option)">https://reasonml.github.io/docs/en/variant.html#option</a></caption>
 </div>
-<br/>
+<br>
 
-`('a)` is the type signature for any type. It's the type we are passing when we use `option`. So when we are using the `optionOrError` type, we are telling the compiler to look for `Some` option of type `('a)`
+`('a)` is the type signature for any type. It's the type we are passing when we use `option`. So when we are using the `optionOrError` type, we are telling the compiler to look for `Some` option of type `('a)`.
+
 ![options](./assets/options.png)
 
 After setting this up, we'll also need to add a function to `Error` case to our render function,
